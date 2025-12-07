@@ -1,5 +1,6 @@
-import express, { Request, Response, NextFunction } from "express";
-import dotenv from "dotenv";
+import express, { Request, Response, NextFunction } from 'express';
+import dotenv from 'dotenv';
+import passport from 'passport';
 
 // Load environment variables
 dotenv.config();
@@ -10,21 +11,22 @@ const PORT = process.env.PORT || 9000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(passport.initialize());
 
 // Basic route
-app.get("/", (req: Request, res: Response) => {
-  res.json({ message: "Hello from Express + TypeScript!" });
+app.get('/', (req: Request, res: Response) => {
+  res.json({ message: 'Hello from Express + TypeScript!' });
 });
 
 // 404 handler
 app.use((req: Request, res: Response) => {
-  res.status(404).json({ error: "Not Found" });
+  res.status(404).json({ error: 'Not Found' });
 });
 
 // Global error handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
+  res.status(500).json({ error: 'Something went wrong!' });
 });
 
 app.listen(PORT, () => {

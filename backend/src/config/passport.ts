@@ -1,50 +1,59 @@
 // src/config/passport.ts
-import passport from 'passport';
-import {
-  Strategy as JwtStrategy,
-  ExtractJwt,
-  VerifiedCallback,
-} from 'passport-jwt';
-import { Algorithm } from 'jsonwebtoken';
-import User from '../models/User';
 
-if (!process.env.ACCESS_TOKEN_SECRET) {
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import User from '../models/User';
+import { verifyAccessToken } from '../utils/token';
+
+const { JWT_ACCESS_SECRET } = process.env;
+
+if (JWT_ACCESS_SECRET) {
   throw new Error('ACCESS_TOKEN_SECRET is not defined in environment');
 }
 
-const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: process.env.ACCESS_TOKEN_SECRET,
-  // Optional but HIGHLY recommended in production
-  issuer: 'your-app-name', // e.g., 'myapi.com'
-  audience: 'your-app-client', // e.g., 'web', 'mobile'
-  algorithms: ['HS256'] as Algorithm[], // enforce algorithm (prevent none attack)
-};
+// Local Strategy (email/password login)
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: 'email',
+      passwordField: 'password',
+    },
+    async (email, password, done) => {
+      try {
+        const user = await User.findOne({ email });
+        if (!user) return done(null, false, { message: 'Invalid credentials' });
 
-const verifyCallback = async (payload: any, done: VerifiedCallback) => {
-  try {
-    // Standard claim is `sub`, not `id`
-    const user = await User.findById(payload.sub)
-      .select('-password -__v') // exclude sensitive fields
-      .lean(); // return plain object (faster)
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch)
+          return done(null, false, { message: 'Invalid credentials' });
 
-    if (!user) {
-      return done(null, false, { message: 'User not found' });
+        return done(null, { id: user._id, email: user.email });
+      } catch (err) {
+        return done(err);
+      }
     }
+  )
+);
 
-    // This will be attached to req.user
-    return done(null, {
-      id: user._id,
-      email: user.email,
-      // add any other fields you want available in req.user
-    });
-  } catch (err) {
-    return done(err, false);
-  }
+// JWT Strategy (for protected routes)
+const opts = {
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: JWT_ACCESS_SECRET,
 };
 
-const setupPassport = (passportInstance: typeof passport) => {
-  passportInstance.use(new JwtStrategy(jwtOptions, verifyCallback));
-};
+passport.use(
+  new JwtStrategy(opts, async (jwt_payload, done) => {
+    try {
+      const user = await User.findById(jwt_payload.sub);
+      if (user) {
+        return done(null, { id: user._id, email: user.email });
+      }
+      return done(null, false);
+    } catch (err) {
+      return done(err, false);
+    }
+  })
+);
 
-export default setupPassport;
+export default passport;
