@@ -116,8 +116,6 @@ export const refresh = async (req: Request, res: Response) => {
     expiresAt: { $gt: new Date() }, // not expired
   });
 
-  // const storedToken = await RefreshToken.verifyToken(oldRefreshToken);
-
   // Case 1: No matching valid token found
   if (!storedToken) {
     // Possible token reuse or already rotated → revoke all just in case
