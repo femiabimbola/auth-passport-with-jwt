@@ -6,7 +6,9 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import User from '../models/User';
 import { verifyAccessToken } from '../utils/token';
 
-const { JWT_ACCESS_SECRET } = process.env;
+// const { JWT_ACCESS_SECRET } = process.env;
+
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 
 if (JWT_ACCESS_SECRET) {
   throw new Error('ACCESS_TOKEN_SECRET is not defined in environment');
@@ -39,7 +41,7 @@ passport.use(
 // JWT Strategy (for protected routes)
 const opts = {
   jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-  secretOrKey: JWT_ACCESS_SECRET,
+  secretOrKey: JWT_ACCESS_SECRET!,
 };
 
 passport.use(
