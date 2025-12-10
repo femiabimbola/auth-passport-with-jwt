@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import passport from 'passport';
 import connectDB from './config/db';
 import authRouter from './routes/auth';
+import configurePassport from './config/passport';
 
 // Load environment variables
 dotenv.config();
@@ -14,6 +15,7 @@ const PORT = process.env.PORT || 9000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+configurePassport(passport);
 
 connectDB();
 
