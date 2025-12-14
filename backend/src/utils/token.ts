@@ -14,16 +14,6 @@ export const generateAccessToken = (payload: object): string => {
   });
 };
 
-// export const generateAccessToken = (user: User): string => {
-//   const payload: AccessTokenPayload = {
-//     userId: user.id,
-//     email: user.email,
-//   };
-//   return jwt.sign(payload, JWT_ACCESS_SECRET!, {
-//     expiresIn: parseInt(ACCESS_TOKEN_EXPIRES),
-//   });
-// };
-
 export const generateRefreshToken = (payload: object): string => {
   return jwt.sign(payload, JWT_REFRESH_SECRET!, {
     expiresIn: parseInt(REFRESH_TOKEN_EXPIRES),
