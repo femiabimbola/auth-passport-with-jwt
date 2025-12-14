@@ -1,5 +1,5 @@
 // src/models/RefreshToken.ts
-import { Schema, model, Document, Model, Types } from 'mongoose';
+import { Schema, model, Document, Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 
