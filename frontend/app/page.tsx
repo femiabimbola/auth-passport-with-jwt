@@ -12,10 +12,10 @@ const Home = () => {
         </p>
         <div className="flex">
           <Button asChild>
-            <Link href={"/register"}>Register</Link>
+            <Link href={"/auth/register"}>Register</Link>
           </Button>
           <Button asChild>
-            <Link href={"/login"}>Login</Link>
+            <Link href={"/auth/login"}>Login</Link>
           </Button>
         </div>
       </div>
