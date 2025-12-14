@@ -80,14 +80,7 @@ export const login = async (req: Request, res: Response) => {
   const user = req.user as { id: string; email: string };
 
   const accessToken = generateAccessToken({ sub: user.id });
-  const refreshToken = generateRefreshToken({ sub: user.id, jti: uuidv4() });
-
-  // Save refresh token to DB
-  // await RefreshToken.create({
-  //   token: refreshToken,
-  //   user: user.id,
-  //   expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  // });
+  // const refreshToken = generateRefreshToken({ sub: user.id, jti: uuidv4() });
 
   const plainRefreshToken = await RefreshToken.createToken(user.id);
 

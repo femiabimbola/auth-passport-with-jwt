@@ -18,6 +18,10 @@ router.post(
 );
 router.post('/refresh', refresh);
 router.post('/logout', logout);
-router.get('/me', passport.authenticate('jwt', { session: false }), me);
+router.get(
+  '/me',
+  passport.authenticate('jwt', { session: false, failWithError: true }),
+  me
+);
 
 export default router;

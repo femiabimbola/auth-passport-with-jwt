@@ -1,6 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import passport from 'passport';
+import connectDB from './config/db';
+import authRouter from './routes/auth';
+import configurePassport from './config/passport';
 
 // Load environment variables
 dotenv.config();
@@ -12,11 +15,16 @@ const PORT = process.env.PORT || 9000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
+configurePassport(passport);
+
+connectDB();
 
 // Basic route
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Hello from Express + TypeScript!' });
 });
+
+app.use('/auth', authRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
