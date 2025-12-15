@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
+import axios from "axios";
+import useSWRMutation from "swr/mutation";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -13,8 +15,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 
 // 1. Define your validation schema
-const formSchema = z.object({
-  email: z.string().email({
+const RegisterSchema = z.object({
+  email: z.email({
     message: "Please enter a valid email address.",
   }),
   password: z.string().min(8, {
@@ -22,12 +24,24 @@ const formSchema = z.object({
   }),
 });
 
+const RegisterFetcher = async (url: string, { arg }: { arg: z.infer<typeof RegisterSchema> }) => {
+  const response = await axios.post(url, arg, { withCredentials: true });
+  console.log(response);
+  return response.data;
+};
+
+const {
+  trigger,
+  isMutating,
+  error: swrError,
+} = useSWRMutation(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`, RegisterFetcher);
+
 export const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   // 2. Define your form
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof RegisterSchema>>({
+    resolver: zodResolver(RegisterSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -35,7 +49,7 @@ export const RegisterPage = () => {
   });
 
   // 3. Define a submit handler
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof RegisterSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values);
@@ -50,10 +64,11 @@ export const RegisterPage = () => {
   const inputStyles =
     "pl-11 pr-4 h-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary/40 border-input";
 
-  const backkground =
+  const background =
     "h-screen w-full bg-gradient-to-br from-sky-100 via-sky-200 to-blue-200 flex items-center justify-center";
+
   return (
-    <div className={backkground}>
+    <div className={background}>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
@@ -99,7 +114,8 @@ export const RegisterPage = () => {
                         <button
                           type="button"
                           onClick={togglePasswordVisibility}
-                          className="absolute right-3 top-4.5 text-muted-foreground hover:text-foreground focus:outline-none"
+                          className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground focus:outline-none"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
                         >
                           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                         </button>
@@ -115,9 +131,9 @@ export const RegisterPage = () => {
               </Button>
             </form>
           </Form>
-          <p className=" text-center pt-3.5 ">
-            Already have an account?
-            <Link href={"/auth/login"} className="text-blue-700 pl-1">
+          <p className=" text-center pt-3.5">
+            Already have an account?{" "}
+            <Link href={"/auth/login"} className="text-blue-700">
               Login
             </Link>
           </p>
