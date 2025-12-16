@@ -4,9 +4,11 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, UserPlus, Loader2 } from "lucide-react";
 import axios from "axios";
 import useSWRMutation from "swr/mutation";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -26,18 +28,13 @@ const RegisterSchema = z.object({
 
 const RegisterFetcher = async (url: string, { arg }: { arg: z.infer<typeof RegisterSchema> }) => {
   const response = await axios.post(url, arg, { withCredentials: true });
-  console.log(response);
+
   return response.data;
 };
 
-const {
-  trigger,
-  isMutating,
-  error: swrError,
-} = useSWRMutation(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`, RegisterFetcher);
-
 export const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   // 2. Define your form
   const form = useForm<z.infer<typeof RegisterSchema>>({
@@ -48,12 +45,29 @@ export const RegisterPage = () => {
     },
   });
 
+  const {
+    trigger,
+    isMutating,
+    error: swrError,
+  } = useSWRMutation(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`, RegisterFetcher);
+
   // 3. Define a submit handler
-  function onSubmit(values: z.infer<typeof RegisterSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-    alert("Registration Successful! Check console for data.");
+  async function onSubmit(values: z.infer<typeof RegisterSchema>) {
+    try {
+      await trigger(values);
+      // Use Sonner for success
+      toast.success("Account created!", {
+        description: "Redirecting you to the login page...",
+      });
+
+      // Brief delay so user can see the success toast
+      setTimeout(() => router.push("/auth/login"), 2000);
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Something went wrong. Please try again.";
+      toast.error("Registration Failed", {
+        description: message,
+      });
+    }
   }
 
   const togglePasswordVisibility = () => {
@@ -114,7 +128,7 @@ export const RegisterPage = () => {
                         <button
                           type="button"
                           onClick={togglePasswordVisibility}
-                          className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground focus:outline-none"
+                          className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
                           aria-label={showPassword ? "Hide password" : "Show password"}
                         >
                           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -126,8 +140,22 @@ export const RegisterPage = () => {
                 )}
               />
 
-              <Button type="submit" className="w-full h-12">
-                <UserPlus className="mr-2 h-4 w-4" /> Register
+              <Button
+                type="submit"
+                className="w-full h-12"
+                disabled={isMutating} // Disable button while loading
+              >
+                {isMutating ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Register
+                  </>
+                )}
               </Button>
             </form>
           </Form>
