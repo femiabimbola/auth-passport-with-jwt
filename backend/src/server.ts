@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import passport from 'passport';
+import cors from 'cors';
 import connectDB from './config/db';
 import authRouter from './routes/auth';
 import configurePassport from './config/passport';
@@ -18,6 +19,13 @@ app.use(passport.initialize());
 configurePassport(passport);
 
 connectDB();
+
+app.use(
+  cors({
+    origin: process.env.WEB_URL, // Allow only your frontend
+    credentials: true, // If you need to send cookies/auth headers (e.g., with Passport sessions)
+  })
+);
 
 // Basic route
 app.get('/', (req: Request, res: Response) => {
