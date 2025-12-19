@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link";
 
 // 1. Define your validation schema
-const RegisterSchema = z.object({
+const LoginSchema = z.object({
   email: z.email({
     message: "Please enter a valid email address.",
   }),
@@ -26,19 +26,19 @@ const RegisterSchema = z.object({
   }),
 });
 
-const RegisterFetcher = async (url: string, { arg }: { arg: z.infer<typeof RegisterSchema> }) => {
+const LoginFetcher = async (url: string, { arg }: { arg: z.infer<typeof LoginSchema> }) => {
   const response = await axios.post(url, arg, { withCredentials: true });
 
   return response.data;
 };
 
-export const RegisterPage = () => {
+export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   // 2. Define your form
-  const form = useForm<z.infer<typeof RegisterSchema>>({
-    resolver: zodResolver(RegisterSchema),
+  const form = useForm<z.infer<typeof LoginSchema>>({
+    resolver: zodResolver(LoginSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -49,22 +49,22 @@ export const RegisterPage = () => {
     trigger,
     isMutating,
     error: swrError,
-  } = useSWRMutation(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`, RegisterFetcher);
+  } = useSWRMutation(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, LoginFetcher);
 
   // 3. Define a submit handler
-  async function onSubmit(values: z.infer<typeof RegisterSchema>) {
+  async function onSubmit(values: z.infer<typeof LoginSchema>) {
     try {
       await trigger(values);
       // Use Sonner for success
-      toast.success("Account created!", {
-        description: "Redirecting you to the login page...",
+      toast.success("Login Successful", {
+        description: "Redirecting you to the profile page...",
       });
 
       // Brief delay so user can see the success toast
-      setTimeout(() => router.push("/auth/login"), 2000);
+      setTimeout(() => router.push("/"), 2000);
     } catch (error: any) {
       const message = error.response?.data?.message || "Something went wrong. Please try again.";
-      toast.error("Registration Failed", {
+      toast.error("Login Failed", {
         description: message,
       });
     }
@@ -85,8 +85,8 @@ export const RegisterPage = () => {
     <div className={background}>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">Enter your email below to create your account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center"> Log In</CardTitle>
+          <CardDescription className="text-center">Enter your credentials to log in</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -148,21 +148,21 @@ export const RegisterPage = () => {
                 {isMutating ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating account...
+                    Log In account...
                   </>
                 ) : (
                   <>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Register
+                    Login
                   </>
                 )}
               </Button>
             </form>
           </Form>
           <p className=" text-center pt-3.5">
-            Already have an account?{" "}
-            <Link href={"/auth/login"} className="text-blue-700">
-              Login
+            Don't have an account?{" "}
+            <Link href={"/auth/register"} className="text-blue-700">
+              Register
             </Link>
           </p>
         </CardContent>
