@@ -5,6 +5,7 @@ import cors from 'cors';
 import connectDB from './config/db';
 import authRouter from './routes/auth';
 import configurePassport from './config/passport';
+import cookieParser from 'cookie-parser';
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 9000;
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(passport.initialize());
 configurePassport(passport);
 
@@ -23,7 +25,9 @@ connectDB();
 app.use(
   cors({
     origin: process.env.WEB_URL, // Allow only your frontend
-    credentials: true, // If you need to send cookies/auth headers (e.g., with Passport sessions)
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
