@@ -11,11 +11,7 @@ import {
 const router = Router();
 
 router.post('/register', register);
-router.post(
-  '/login',
-  passport.authenticate('local', { session: false }),
-  login
-);
+router.post('/login', login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
 router.get(
