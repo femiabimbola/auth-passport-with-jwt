@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
 import bcrypt from 'bcrypt';
+import passport from 'passport';
 import RefreshToken from '../models/RefreshToken';
 import {
   generateAccessToken,
@@ -77,16 +78,37 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Login
-export const login = async (req: Request, res: Response) => {
-  const user = req.user as { id: string; email: string };
+export const login = (req: Request, res: Response, next: NextFunction) => {
+  passport.authenticate(
+    'local',
+    { session: false },
+    async (err: any, user: any, info: any) => {
+      try {
+        // 1. Handle system errors (e.g. DB connection issues)
+        if (err) return next(err);
 
-  const accessToken = generateAccessToken({ sub: user.id });
+        // 2. Handle authentication failures (Wrong email/password)
+        // This is where your 'info.message' from the strategy is captured
+        if (!user) {
+          return res.status(401).json({
+            message: info?.message || 'Login failed',
+          });
+        }
 
-  const plainRefreshToken = await RefreshToken.createToken(user.id);
+        // 3. Generate Access Token
+        const accessToken = generateAccessToken({ sub: user.id });
 
-  res.cookie('refreshToken', plainRefreshToken, COOKIE_OPTIONS);
-  res.json({ accessToken });
+        // 4. Generate Refresh Token
+        const plainRefreshToken = await RefreshToken.createToken(user.id);
+
+        // 5. Send Response
+        res.cookie('refreshToken', plainRefreshToken, COOKIE_OPTIONS);
+        return res.json({ accessToken });
+      } catch (error) {
+        next(error);
+      }
+    }
+  )(req, res, next); // Pass the req, res, and next to the passport middleware
 };
 
 // Refresh Token

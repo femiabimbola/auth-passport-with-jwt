@@ -15,9 +15,7 @@ if (!JWT_ACCESS_SECRET) {
 }
 
 // Local Strategy (email/password login)
-// Export a function that configures the passed passport instance
 const configurePassport = (passportInstance: typeof passport) => {
-  // Local Strategy (email/password login)
   passportInstance.use(
     'local', // explicitly name it 'local'
     new LocalStrategy(
@@ -29,11 +27,13 @@ const configurePassport = (passportInstance: typeof passport) => {
         try {
           const user = await User.findOne({ email });
           if (!user)
-            return done(null, false, { message: 'Invalid credentials' });
+            return done(null, false, {
+              message: 'No account found with this email',
+            });
 
           const isMatch = await user.comparePassword(password);
           if (!isMatch)
-            return done(null, false, { message: 'Invalid credentials' });
+            return done(null, false, { message: 'Incorrect password' });
 
           // Return minimal user info (avoid sending full user object)
           return done(null, { id: user._id, email: user.email });
