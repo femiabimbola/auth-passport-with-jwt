@@ -9,10 +9,12 @@ import {
 } from '../utils/token';
 import { v4 as uuidv4 } from 'uuid';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,
-  sameSite: 'none' as const,
+  secure: isProduction, // Only true in production (HTTPS)
+  sameSite: isProduction ? ('none' as const) : ('lax' as const),
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
