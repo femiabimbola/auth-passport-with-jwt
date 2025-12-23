@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
+import { setAccessToken } from "@/lib/api";
 
 // 1. Define your validation schema
 const LoginSchema = z.object({
@@ -55,7 +56,9 @@ export const LoginPage = () => {
   async function onSubmit(values: z.infer<typeof LoginSchema>) {
     try {
       await trigger(values);
-      // Use Sonner for success
+      console.log(" The trigger", values);
+      // const data = response.data;
+      // setAccessToken(data.accessToken);
       toast.success("Login Successful", {
         description: "Redirecting you to the profile page...",
       });

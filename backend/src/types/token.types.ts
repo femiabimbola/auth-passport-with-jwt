@@ -11,3 +11,13 @@ export interface User {
   // In a real application, this would track multiple tokens (one per device).
   activeRefreshTokenId?: string;
 }
+
+// declare global {
+//   namespace Express {
+//     interface Request {
+//       user?: {
+//         id: string;
+//       };
+//     }
+//   }
+// }
