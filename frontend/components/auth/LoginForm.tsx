@@ -61,7 +61,7 @@ export const LoginPage = () => {
       });
 
       // Brief delay so user can see the success toast
-      setTimeout(() => router.push("/"), 2000);
+      setTimeout(() => router.push("/dashboard"), 2000);
     } catch (error: any) {
       const message = error.response?.data?.message || "Something went wrong. Please try again.";
       toast.error("Login Failed", {
