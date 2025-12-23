@@ -55,10 +55,12 @@ export const LoginPage = () => {
   // 3. Define a submit handler
   async function onSubmit(values: z.infer<typeof LoginSchema>) {
     try {
-      await trigger(values);
-      console.log(" The trigger", values);
-      // const data = response.data;
-      // setAccessToken(data.accessToken);
+      // Capture the data returned by the mutation
+      const data = await trigger(values);
+
+      // Now you can use the data directly
+      setAccessToken(data.accessToken);
+
       toast.success("Login Successful", {
         description: "Redirecting you to the profile page...",
       });
