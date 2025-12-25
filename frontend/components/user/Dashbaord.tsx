@@ -1,18 +1,58 @@
+"use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Mail, User, LayoutDashboard, Settings, LogOut } from "lucide-react";
 
+import useSWR from "swr";
+import api from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+const fetcher = (url: string) => api.get(url).then((res) => res.data);
+
 const Dashboard = () => {
+  const router = useRouter();
+
+  const { data: ruser, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile`, fetcher);
+
+  // const user = {
+  //   name: "Alex Johnson",
+  //   email: "alex.j@example.com",
+  // };
+
+  // 1. ROUTE PROTECTION: Redirect if there is an error (e.g., 401 Unauthorized)
+  useEffect(() => {
+    if (error && !isLoading) {
+      router.push("/login");
+    }
+  }, [error, isLoading, router]);
+
+  // 2. LOADING STATE: Show a spinner or skeleton while checking auth
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-gray-50">
+        <p className="text-muted-foreground animate-pulse">Loading dashboard...</p>
+      </div>
+    );
+  }
+
+  // If there is an error or no data yet, return null to prevent flashing the protected content
+  if (error || !ruser) return null;
+
+  // 3. USE REAL DATA: Map the API response to your UI
+  // Adjust 'ruser' access depending on if your backend sends { user: ... } or just the object
   const user = {
-    name: "Alex Johnson",
-    email: "alex.j@example.com",
+    name: ruser.name || "User", // Fallback if name is missing
+    email: ruser.email,
+    id: ruser.id
   };
 
-  const initials = user.name.split(" ").map(n => n[0]).join("");
+ const initials = user.name ? user.name.split(" ").map((n: string) => n[0]).join("") : "U";
 
   return (
     <div className="flex h-screen bg-gray-50/50">
-        
+
       {/* Sidebar */}
       <aside className="w-64 border-r bg-white p-6 hidden md:block">
         <h2 className="text-xl font-bold mb-8">MyApp</h2>

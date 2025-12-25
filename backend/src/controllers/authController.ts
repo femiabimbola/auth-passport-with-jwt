@@ -88,7 +88,6 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
         if (err) return next(err);
 
         // 2. Handle authentication failures (Wrong email/password)
-        // This is where your 'info.message' from the strategy is captured
         if (!user) {
           return res.status(401).json({
             message: info?.message || 'Login failed',
