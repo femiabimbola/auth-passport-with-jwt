@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 export interface IUser extends Document {
   email: string;
   password: string;
+  fullName: string;
   comparePassword: (password: string) => Promise<boolean>;
 }
 
@@ -23,6 +24,12 @@ const UserSchema: Schema<IUser> = new Schema(
       required: [true, 'Password is required'],
       minlength: [6, 'Password must be at least 6 characters'],
     },
+    fullName: { // 2. Add to schema
+      type: String,
+      required: [true, 'Full name is required'],
+      trim: true,
+      maxlength: [50, 'Full name cannot exceed 50 characters']
+    }
   },
   { timestamps: true } // useful!
 );

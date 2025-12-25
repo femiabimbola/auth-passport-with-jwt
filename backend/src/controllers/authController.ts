@@ -21,16 +21,14 @@ const COOKIE_OPTIONS = {
 
 // Register
 export const register = async (req: Request, res: Response): Promise<void> => {
-  // 1. Check for validation errors (add express-validator middleware before this)
-  // const errors = validationResult(req);
-  // if (!errors.isEmpty()) {
-  //   res
-  //     .status(400)
-  //     .json({ message: 'Validation failed', errors: errors.array() });
-  //   return;
-  // }
 
-  const { email, password } = req.body;
+  const { email, password, fullName } = req.body;
+
+  // Basic validation (optional, since Mongoose will catch it too)
+  if (!email || !password || !fullName) {
+    res.status(400).json({ message: 'Email, password, and full name are required' });
+    return;
+  }
 
   try {
     // 2. Check if user already exists
@@ -42,10 +40,11 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // 3. Create user — password will be hashed automatically by pre-save hook
+    // Create user
     const user: IUser = new User({
       email: email.toLowerCase().trim(),
-      password, // pre-save hook handles hashing
+      password, // hashed by pre-save hook
+      fullName: fullName.trim(), // clean up whitespace
     });
 
     await user.save(); // This triggers the pre('save') hook
@@ -54,6 +53,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
     const userResponse = {
       id: user._id,
       email: user.email,
+      fullName: user.fullName,
     };
 
     res.status(201).json({
