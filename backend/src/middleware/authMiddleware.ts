@@ -33,6 +33,7 @@ export const authenticateJWT = (
     req.user = { id: payload.sub };
 
     next();
+    return;
   } catch (err) {
     if (err instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ message: 'Access token expired' });
