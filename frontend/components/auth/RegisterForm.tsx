@@ -4,31 +4,57 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff, UserPlus, Loader2 } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  UserPlus,
+  Loader2,
+  User, // ← New icon for full name
+} from "lucide-react";
 import axios from "axios";
 import useSWRMutation from "swr/mutation";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import Link from "next/link";
 
-// 1. Define your validation schema
+// 1. Updated validation schema with fullName
 const RegisterSchema = z.object({
-  email: z.email({
-    message: "Please enter a valid email address.",
-  }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
-  }),
+  fullName: z
+    .string()
+    .min(2, { message: "Full name must be at least 2 characters." })
+    .max(50, { message: "Full name is too long." })
+    .trim(),
+  email: z.string().email({ message: "Please enter a valid email address." }),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters." }),
 });
 
-const RegisterFetcher = async (url: string, { arg }: { arg: z.infer<typeof RegisterSchema> }) => {
+const RegisterFetcher = async (
+  url: string,
+  { arg }: { arg: z.infer<typeof RegisterSchema> }
+) => {
   const response = await axios.post(url, arg, { withCredentials: true });
-
   return response.data;
 };
 
@@ -36,45 +62,42 @@ export const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  // 2. Define your form
+  // 2. Form with updated schema
   const form = useForm<z.infer<typeof RegisterSchema>>({
     resolver: zodResolver(RegisterSchema),
     defaultValues: {
+      fullName: "",
       email: "",
       password: "",
     },
   });
 
-  const {
-    trigger,
-    isMutating,
-    error: swrError,
-  } = useSWRMutation(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`, RegisterFetcher);
+  const { trigger, isMutating } = useSWRMutation(
+    `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/register`,
+    RegisterFetcher
+  );
 
-  // 3. Define a submit handler
+  // 3. Submit handler (unchanged, but now sends fullName)
   async function onSubmit(values: z.infer<typeof RegisterSchema>) {
     try {
       await trigger(values);
-      // Use Sonner for success
       toast.success("Account created!", {
         description: "Redirecting you to the login page...",
       });
-
-      // Brief delay so user can see the success toast
       setTimeout(() => router.push("/auth/login"), 2000);
     } catch (error: any) {
-      const message = error.response?.data?.message || "Something went wrong. Please try again.";
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.errors?.[0] ||
+        "Something went wrong. Please try again.";
       toast.error("Registration Failed", {
         description: message,
       });
     }
   }
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
-  // Common class for spacious input with thinner focus ring
   const inputStyles =
     "pl-11 pr-4 h-12 text-base focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-primary/40 border-input";
 
@@ -85,12 +108,38 @@ export const RegisterPage = () => {
     <div className={background}>
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
-          <CardDescription className="text-center">Enter your email below to create your account</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">
+            Create an account
+          </CardTitle>
+          <CardDescription className="text-center">
+            Enter your details below to create your account
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Full Name Field */}
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <User className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                        <Input
+                          placeholder="John Doe"
+                          className={inputStyles}
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {/* Email Field */}
               <FormField
                 control={form.control}
@@ -101,7 +150,11 @@ export const RegisterPage = () => {
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
-                        <Input placeholder="m@example.com" className={inputStyles} {...field} />
+                        <Input
+                          placeholder="m@example.com"
+                          className={inputStyles}
+                          {...field}
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -131,7 +184,11 @@ export const RegisterPage = () => {
                           className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground focus:outline-none cursor-pointer"
                           aria-label={showPassword ? "Hide password" : "Show password"}
                         >
-                          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5" />
+                          ) : (
+                            <Eye className="h-5 w-5" />
+                          )}
                         </button>
                       </div>
                     </FormControl>
@@ -143,7 +200,7 @@ export const RegisterPage = () => {
               <Button
                 type="submit"
                 className="w-full h-12"
-                disabled={isMutating} // Disable button while loading
+                disabled={isMutating}
               >
                 {isMutating ? (
                   <>
@@ -159,9 +216,10 @@ export const RegisterPage = () => {
               </Button>
             </form>
           </Form>
-          <p className=" text-center pt-3.5">
+
+          <p className="text-center pt-3.5 text-sm text-muted-foreground">
             Already have an account?{" "}
-            <Link href={"/auth/login"} className="text-blue-700">
+            <Link href="/auth/login" className="text-blue-700 font-medium hover:underline">
               Login
             </Link>
           </p>
