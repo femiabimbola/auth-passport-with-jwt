@@ -14,19 +14,20 @@ const fetcher = (url: string) => api.get(url).then((res) => res.data);
 const Dashboard = () => {
   const router = useRouter();
 
-  const { data: ruser, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_BACKEND_URL}/profile`, fetcher);
+  const { data: ruser, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/profile`, fetcher);
 
+  // console.log(ruser)
   // const user = {
   //   name: "Alex Johnson",
   //   email: "alex.j@example.com",
   // };
 
   // 1. ROUTE PROTECTION: Redirect if there is an error (e.g., 401 Unauthorized)
-  useEffect(() => {
-    if (error && !isLoading) {
-      router.push("/login");
-    }
-  }, [error, isLoading, router]);
+  // useEffect(() => {
+  //   if (error && !isLoading) {
+  //     router.push("/auth/login");
+  //   }
+  // }, [error, isLoading, router]);
 
   // 2. LOADING STATE: Show a spinner or skeleton while checking auth
   if (isLoading) {

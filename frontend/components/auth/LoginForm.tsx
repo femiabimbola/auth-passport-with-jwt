@@ -15,7 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { setAccessToken } from "@/lib/api";
+import api, { setAccessToken } from "@/lib/api";
 
 // 1. Define your validation schema
 const LoginSchema = z.object({
@@ -28,7 +28,7 @@ const LoginSchema = z.object({
 });
 
 const LoginFetcher = async (url: string, { arg }: { arg: z.infer<typeof LoginSchema> }) => {
-  const response = await axios.post(url, arg, { withCredentials: true });
+  const response = await api.post(url, arg, { withCredentials: true });
 
   return response.data;
 };
