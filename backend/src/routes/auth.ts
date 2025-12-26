@@ -21,11 +21,11 @@ router.post('/logout', logout);
 //   me
 // );
 
-router.get('/me', authenticateJWT, (req, res) => {
+router.get('/profile', authenticateJWT, (req, res) => {
   // req.user is now available thanks to the middleware
   res.json({
     message: 'This is protected data',
-    userId: req.user!,
+    user: req.user!,
   });
 });
 
