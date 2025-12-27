@@ -5,16 +5,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Mail, User, LayoutDashboard, Settings, LogOut } from "lucide-react";
 
 import useSWR from "swr";
-import api from "@/lib/api";
+import api from "@/lib/api2";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
 const Dashboard = () => {
   const router = useRouter();
 
+  
   const { data: ruser, error, isLoading } = useSWR(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/profile`, fetcher);
+
+  console.log(ruser)
 
   // console.log(ruser)
   // const user = {
@@ -42,7 +44,6 @@ const Dashboard = () => {
   if (error || !ruser) return null;
 
   // 3. USE REAL DATA: Map the API response to your UI
-  // Adjust 'ruser' access depending on if your backend sends { user: ... } or just the object
   const user = {
     name: ruser.name || "User", // Fallback if name is missing
     email: ruser.email,

@@ -26,6 +26,7 @@ router.get('/profile', authenticateJWT, (req, res) => {
   res.json({
     message: 'This is protected data',
     user: req.user!,
+    detail: me
   });
 });
 
