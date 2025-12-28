@@ -7,7 +7,7 @@ import { Mail, User, LayoutDashboard, Settings, LogOut } from "lucide-react";
 import useSWR from "swr";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/authStore";
+import { useEffect } from "react";
 
 const fetcher = (url: string) => api.get(url).then((res) => res.data);
 
@@ -50,7 +50,7 @@ const Dashboard = () => {
 
       {/* Sidebar */}
       <aside className="w-64 border-r bg-white p-6 hidden md:block">
-        <h2 className="text-xl font-bold mb-8">MyApp</h2>
+        <h2 className="text-xl font-bold mb-8">Authentication</h2>
         <nav className="space-y-2">
           <button className="flex items-center gap-3 w-full p-2 bg-secondary rounded-lg text-sm font-medium">
             <LayoutDashboard size={18} /> Dashboard

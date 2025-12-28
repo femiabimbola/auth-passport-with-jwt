@@ -19,6 +19,13 @@ const COOKIE_OPTIONS = {
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+  };
+}
+
+
 // Register
 export const register = async (req: Request, res: Response): Promise<void> => {
 
@@ -183,15 +190,11 @@ export const logout = async (req: Request, res: Response) => {
   res.json({ message: 'Logged out' });
 };
 
-interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-  };
-}
 
 
 // Get Profile (protected)
 export const getUserProfile = async (req: Request, res: Response) => {
+
   // Cast req to our custom interface so TypeScript knows 'user' exists
   const authReq = req as AuthenticatedRequest;
 
@@ -213,7 +216,6 @@ export const getUserProfile = async (req: Request, res: Response) => {
     return res.status(200).json({
       email: user.email,
       fullName: user.fullName,
-      // You can include user._id here if the frontend needs it
     });
 
   } catch (error) {

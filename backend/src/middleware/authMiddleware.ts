@@ -1,7 +1,6 @@
 // src/middleware/authenticateJWT.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { verifyAccessToken } from '../utils/token';
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 
