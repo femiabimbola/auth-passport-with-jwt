@@ -15,7 +15,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import api, { setAccessToken } from "@/lib/api";
+import api from "@/lib/api";
+import { useUserStore } from "@/store/userStore";
+import { useAuthStore } from '@/store/authStore';
 
 // 1. Define your validation schema
 const LoginSchema = z.object({
@@ -36,6 +38,7 @@ const LoginFetcher = async (url: string, { arg }: { arg: z.infer<typeof LoginSch
 export const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const setUser = useUserStore((state) => state.setUser);
 
   // 2. Define your form
   const form = useForm<z.infer<typeof LoginSchema>>({
@@ -53,27 +56,55 @@ export const LoginPage = () => {
   } = useSWRMutation(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, LoginFetcher);
 
   // 3. Define a submit handler
-  async function onSubmit(values: z.infer<typeof LoginSchema>) {
-    try {
-      // Capture the data returned by the mutation
-      const data = await trigger(values);
+  // async function onSubmit(values: z.infer<typeof LoginSchema>) {
+  //   try {
+  //     // Capture the data returned by the mutation
+  //     const data = await trigger(values);
 
-      // Now you can use the data directly
-      setAccessToken(data.accessToken);
+  //     // Now you can use the data directly
+  //     setAccessToken(data.accessToken);
 
-      toast.success("Login Successful", {
+  //     const userRes = await api.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/profile`)
+
+  //     setUser(userRes.data);
+
+  //     toast.success("Login Successful", {
+  //       description: "Redirecting you to the profile page...",
+  //     });
+
+  //     // Brief delay so user can see the success toast
+  //     setTimeout(() => router.push("/dashboard"), 2000);
+  //   } catch (error: any) {
+  //     const message = error.response?.data?.message || "Something went wrong. Please try again.";
+  //     toast.error("Login Failed", {
+  //       description: message,
+  //     });
+  //   }
+  // }
+
+  const onSubmit = async (values:z.infer<typeof LoginSchema>) => {
+  try {
+    const res = await trigger(values);
+    
+    const  accessToken  = res;
+    console.log(accessToken)
+
+    // This updates the Zustand store
+    useAuthStore.getState().setAccessToken(accessToken);
+
+   toast.success("Login Successful", {
         description: "Redirecting you to the profile page...",
       });
 
-      // Brief delay so user can see the success toast
-      setTimeout(() => router.push("/dashboard"), 2000);
-    } catch (error: any) {
-      const message = error.response?.data?.message || "Something went wrong. Please try again.";
+    // Now navigate — the interceptor will have the new token immediately
+    router.push('/dashboard');
+  } catch (error: any) {
+         const message = error.response?.data?.message || "Something went wrong. Please try again.";
       toast.error("Login Failed", {
         description: message,
       });
-    }
   }
+};
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);

@@ -5,7 +5,7 @@ import {
   login,
   refresh,
   logout,
-  me,
+  getUserProfile,
 } from '../controllers/authController';
 import { authenticateJWT } from '../middleware/authMiddleware';
 
@@ -15,18 +15,6 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
-// router.get(
-//   '/me',
-//   passport.authenticate('jwt', { session: false, failWithError: true }),
-//   me
-// );
-
-router.get('/profile', authenticateJWT, (req, res) => {
-  // req.user is now available thanks to the middleware
-  res.json({
-    message: 'This is protected data',
-    user: req.user!,
-  });
-});
+router.get('/profile', authenticateJWT, getUserProfile);
 
 export default router;

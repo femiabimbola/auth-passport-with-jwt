@@ -1,6 +1,7 @@
 // src/middleware/authenticateJWT.ts
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { verifyAccessToken } from '../utils/token';
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
 
@@ -10,7 +11,6 @@ if (!JWT_ACCESS_SECRET) {
 
 interface JwtPayload {
   sub: string;
-  // add other fields if you include them in the token
 }
 
 export const authenticateJWT = (
@@ -27,8 +27,7 @@ export const authenticateJWT = (
   const token = authHeader.split(' ')[1];
 
   try {
-    const payload = jwt.verify(token, JWT_ACCESS_SECRET) as JwtPayload;
-
+  const payload = jwt.verify(token, JWT_ACCESS_SECRET) as JwtPayload;
     // Attach user info to request
     req.user = { id: payload.sub };
 

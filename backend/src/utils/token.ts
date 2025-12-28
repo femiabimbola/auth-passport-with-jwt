@@ -4,14 +4,12 @@ import { AccessTokenPayload, User } from '../types/token.types';
 const {
   JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET,
-  ACCESS_TOKEN_EXPIRES = '15m',
+  ACCESS_TOKEN_EXPIRES = '20m',
   REFRESH_TOKEN_EXPIRES = '7d',
 } = process.env;
 
 export const generateAccessToken = (payload: object): string => {
-  return jwt.sign(payload, JWT_ACCESS_SECRET!, {
-    expiresIn: parseInt(ACCESS_TOKEN_EXPIRES || '3600', 10),
-  });
+  return jwt.sign(payload, JWT_ACCESS_SECRET!, { expiresIn: '15m' });
 };
 
 export const generateRefreshToken = (payload: object): string => {

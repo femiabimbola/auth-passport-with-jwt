@@ -11,7 +11,7 @@ import {
   EyeOff,
   UserPlus,
   Loader2,
-  User, // ← New icon for full name
+  User, 
 } from "lucide-react";
 import axios from "axios";
 import useSWRMutation from "swr/mutation";
