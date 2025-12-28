@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '@/store/authStore'; // adjust path
+import { useAuthStore } from '@/store/authStore'; 
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
@@ -22,6 +22,7 @@ const updateAuthInterceptor = () => {
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
     return config;
   });
 };

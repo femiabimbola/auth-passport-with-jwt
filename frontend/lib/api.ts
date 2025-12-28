@@ -1,4 +1,4 @@
-
+import { useAuthStore } from '@/store/authStore'; 
 import axios from "axios";
 
 const api = axios.create({
@@ -6,18 +6,16 @@ const api = axios.create({
   withCredentials: true, // Important: still needed for refresh token cookie
 });
 
-let accessToken: string | null = null;
 
-export const setAccessToken = (token: string) => {
-  accessToken = token;
-};
-
-// Interceptor to automatically add token
 api.interceptors.request.use((config) => {
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
+  const token = useAuthStore.getState().accessToken; // fresh every time
+
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
+
 });
 
 export default api;

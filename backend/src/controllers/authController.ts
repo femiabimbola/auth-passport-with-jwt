@@ -183,7 +183,41 @@ export const logout = async (req: Request, res: Response) => {
   res.json({ message: 'Logged out' });
 };
 
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+  };
+}
+
+
 // Get Profile (protected)
-export const me = (req: Request, res: Response) => {
-  res.json({ user: req.user });
+export const getUserProfile = async (req: Request, res: Response) => {
+  // Cast req to our custom interface so TypeScript knows 'user' exists
+  const authReq = req as AuthenticatedRequest;
+
+  try {
+    // 2. Safety check: ensure user ID exists from middleware
+    if (!authReq.user || !authReq.user.id) {
+      return res.status(401).json({ message: 'User identifier missing from token' });
+    }
+
+    // 3. Find user by ID, but SELECT only specific fields
+    // We explicitly select 'email' and 'fullName'. The '_id' is included by default.
+    const user = await User.findById(authReq.user.id).select('email fullName');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // 4. Return the data
+    return res.status(200).json({
+      email: user.email,
+      fullName: user.fullName,
+      // You can include user._id here if the frontend needs it
+    });
+
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
 };

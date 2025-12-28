@@ -11,7 +11,6 @@ if (!JWT_ACCESS_SECRET) {
 
 interface JwtPayload {
   sub: string;
-  // add other fields if you include them in the token
 }
 
 export const authenticateJWT = (

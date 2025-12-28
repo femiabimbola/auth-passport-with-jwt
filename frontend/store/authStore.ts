@@ -7,5 +7,5 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
-  setAccessToken: (token) => set({ accessToken: token }),
+  setAccessToken: (payload: any) => set({ accessToken: payload.accessToken }),
 }));
