@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/User';
-import bcrypt from 'bcrypt';
 import passport from 'passport';
 import RefreshToken from '../models/RefreshToken';
 import {
@@ -8,7 +7,6 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from '../utils/token';
-import { v4 as uuidv4 } from 'uuid';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -117,69 +115,6 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
   )(req, res, next); // Pass the req, res, and next to the passport middleware
 };
 
-// Refresh Token
-// export const refresh = async (req: Request, res: Response) => {
-//   const oldRefreshToken = req.cookies.refreshToken;
-//   if (!oldRefreshToken) {
-//     return res.status(401).json({ message: 'Refresh token missing' });
-//   }
-  
-//   console.log("refreshToken",oldRefreshToken)
-
-//   let decoded: any;
-//   try {
-//     decoded = verifyRefreshToken(oldRefreshToken);
- 
-//   } catch (err) {
-//     res.clearCookie('refreshToken', COOKIE_OPTIONS);
-//     return res.status(401).json({ message: 'Invalid refresh token' });
-//   }
-
-//   // Find the stored refresh token entry for this user that matches the incoming token
-//   const storedToken = await RefreshToken.findOne({
-//     user: decoded.sub,
-//     expiresAt: { $gt: new Date() },
-//   });
-
-//   // Case 1: No matching valid token found
-//   if (!storedToken) {
-//     // Possible token reuse or already rotated → revoke all just in case
-//     await RefreshToken.deleteMany({ user: decoded.sub });
-//     res.clearCookie('refreshToken', COOKIE_OPTIONS);
-//     return res
-//       .status(401)
-//       .json({ message: 'Invalid or expired refresh token' });
-//   }
-
-//   // Case 2: Critical — verify the plain token matches the stored hash
-//   const isMatch = await bcrypt.compare(oldRefreshToken, storedToken.tokenHash);
-//   if (!isMatch) {
-//     // Token reuse detected! Someone is using a stolen token
-//     await RefreshToken.deleteMany({ user: decoded.sub });
-//     res.clearCookie('refreshToken', COOKIE_OPTIONS);
-//     // Optional: trigger security alert
-//     return res
-//       .status(401)
-//       .json({ message: 'Token reuse detected - all sessions revoked' });
-//   }
-
-//   // Token is valid → rotate it
-//   await storedToken.deleteOne(); // remove old one
-
-//   // Generate new tokens
-//   const newAccessToken = generateAccessToken({ sub: decoded.sub });
-//   const newRefreshToken = generateRefreshToken({
-//     sub: decoded.sub,
-//     jti: uuidv4(),
-//   });
-
-//   // Store new hashed refresh token
-//   await RefreshToken.createToken(decoded.sub); // uses your static method
-
-//   res.cookie('refreshToken', newRefreshToken, COOKIE_OPTIONS);
-//   return res.json({ accessToken: newAccessToken });
-// };
-
 
 export const refresh = async (req: Request, res: Response) => {
   const oldRefreshToken = req.cookies.refreshToken;
@@ -205,7 +140,6 @@ export const refresh = async (req: Request, res: Response) => {
   }
 
   // 2. Since storedTokenDoc is returned, we know the token is valid.
-  // We get the userId from the document (storedTokenDoc.user)
   const userId = storedTokenDoc.user.toString();
 
   // 3. Token Rotation: Delete the used token
@@ -215,11 +149,8 @@ export const refresh = async (req: Request, res: Response) => {
   const newAccessToken = generateAccessToken({ sub: userId });
  
   // 5. Create new Refresh Token in DB and get the plain string back
-  // There is error here
-  console.log(userId)
   const newRefreshTokenPlain = await RefreshToken.createToken(userId);
-  console.log("Refresh Token", newRefreshTokenPlain)
-
+ 
   // 6. Set cookie and respond
   res.cookie('refreshToken', newRefreshTokenPlain, COOKIE_OPTIONS);
   return res.json({ accessToken: newAccessToken });
