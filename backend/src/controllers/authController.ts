@@ -135,7 +135,7 @@ export const refresh = async (req: Request, res: Response) => {
   // Find the stored refresh token entry for this user that matches the incoming token
   const storedToken = await RefreshToken.findOne({
     user: decoded.sub,
-    expiresAt: { $gt: new Date() }, // not expired
+    expiresAt: { $gt: new Date() },
   });
 
   // Case 1: No matching valid token found

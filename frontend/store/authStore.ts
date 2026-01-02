@@ -14,6 +14,7 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       // Fixed: accept the token string or null directly
       setAccessToken: (payload: any) => set({ accessToken: payload.accessToken }),
+      // setAccessToken: (token: string | null) => set({ accessToken: token }),
       clearAuth: () => set({ accessToken: null }),
     }),
     {
