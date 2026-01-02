@@ -1,10 +1,9 @@
 import jwt from 'jsonwebtoken';
-import { AccessTokenPayload, User } from '../types/token.types';
+
 import { JsonWebTokenError, TokenExpiredError, NotBeforeError } from 'jsonwebtoken';
 const {
   JWT_ACCESS_SECRET,
   JWT_REFRESH_SECRET,
-  ACCESS_TOKEN_EXPIRES = '20m',
   REFRESH_TOKEN_EXPIRES = '7d',
 } = process.env;
 
