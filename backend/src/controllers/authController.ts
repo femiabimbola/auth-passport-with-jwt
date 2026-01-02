@@ -118,62 +118,110 @@ export const login = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // Refresh Token
+// export const refresh = async (req: Request, res: Response) => {
+//   const oldRefreshToken = req.cookies.refreshToken;
+//   if (!oldRefreshToken) {
+//     return res.status(401).json({ message: 'Refresh token missing' });
+//   }
+  
+//   console.log("refreshToken",oldRefreshToken)
+
+//   let decoded: any;
+//   try {
+//     decoded = verifyRefreshToken(oldRefreshToken);
+ 
+//   } catch (err) {
+//     res.clearCookie('refreshToken', COOKIE_OPTIONS);
+//     return res.status(401).json({ message: 'Invalid refresh token' });
+//   }
+
+//   // Find the stored refresh token entry for this user that matches the incoming token
+//   const storedToken = await RefreshToken.findOne({
+//     user: decoded.sub,
+//     expiresAt: { $gt: new Date() },
+//   });
+
+//   // Case 1: No matching valid token found
+//   if (!storedToken) {
+//     // Possible token reuse or already rotated → revoke all just in case
+//     await RefreshToken.deleteMany({ user: decoded.sub });
+//     res.clearCookie('refreshToken', COOKIE_OPTIONS);
+//     return res
+//       .status(401)
+//       .json({ message: 'Invalid or expired refresh token' });
+//   }
+
+//   // Case 2: Critical — verify the plain token matches the stored hash
+//   const isMatch = await bcrypt.compare(oldRefreshToken, storedToken.tokenHash);
+//   if (!isMatch) {
+//     // Token reuse detected! Someone is using a stolen token
+//     await RefreshToken.deleteMany({ user: decoded.sub });
+//     res.clearCookie('refreshToken', COOKIE_OPTIONS);
+//     // Optional: trigger security alert
+//     return res
+//       .status(401)
+//       .json({ message: 'Token reuse detected - all sessions revoked' });
+//   }
+
+//   // Token is valid → rotate it
+//   await storedToken.deleteOne(); // remove old one
+
+//   // Generate new tokens
+//   const newAccessToken = generateAccessToken({ sub: decoded.sub });
+//   const newRefreshToken = generateRefreshToken({
+//     sub: decoded.sub,
+//     jti: uuidv4(),
+//   });
+
+//   // Store new hashed refresh token
+//   await RefreshToken.createToken(decoded.sub); // uses your static method
+
+//   res.cookie('refreshToken', newRefreshToken, COOKIE_OPTIONS);
+//   return res.json({ accessToken: newAccessToken });
+// };
+
+
 export const refresh = async (req: Request, res: Response) => {
   const oldRefreshToken = req.cookies.refreshToken;
+
   if (!oldRefreshToken) {
     return res.status(401).json({ message: 'Refresh token missing' });
   }
 
-  let decoded: any;
+
+
+  let storedTokenDoc;
   try {
-    decoded = verifyRefreshToken(oldRefreshToken);
+    // 1. Call your static method to find and verify the hash
+    storedTokenDoc = await RefreshToken.verifyToken(oldRefreshToken);
+    
+    if (!storedTokenDoc) {
+      // If no match is found, it's either expired or invalid
+      res.clearCookie('refreshToken', COOKIE_OPTIONS);
+      return res.status(401).json({ message: 'Invalid or expired refresh token' });
+    }
   } catch (err) {
-    res.clearCookie('refreshToken', COOKIE_OPTIONS);
-    return res.status(401).json({ message: 'Invalid refresh token' });
+    return res.status(500).json({ message: 'Internal server error' });
   }
 
-  // Find the stored refresh token entry for this user that matches the incoming token
-  const storedToken = await RefreshToken.findOne({
-    user: decoded.sub,
-    expiresAt: { $gt: new Date() },
-  });
+  // 2. Since storedTokenDoc is returned, we know the token is valid.
+  // We get the userId from the document (storedTokenDoc.user)
+  const userId = storedTokenDoc.user.toString();
 
-  // Case 1: No matching valid token found
-  if (!storedToken) {
-    // Possible token reuse or already rotated → revoke all just in case
-    await RefreshToken.deleteMany({ user: decoded.sub });
-    res.clearCookie('refreshToken', COOKIE_OPTIONS);
-    return res
-      .status(401)
-      .json({ message: 'Invalid or expired refresh token' });
-  }
+  // 3. Token Rotation: Delete the used token
+  await storedTokenDoc.deleteOne();
 
-  // Case 2: Critical — verify the plain token matches the stored hash
-  const isMatch = await bcrypt.compare(oldRefreshToken, storedToken.tokenHash);
-  if (!isMatch) {
-    // Token reuse detected! Someone is using a stolen token
-    await RefreshToken.deleteMany({ user: decoded.sub });
-    res.clearCookie('refreshToken', COOKIE_OPTIONS);
-    // Optional: trigger security alert
-    return res
-      .status(401)
-      .json({ message: 'Token reuse detected - all sessions revoked' });
-  }
+  // 4. Generate new tokens
+  const newAccessToken = generateAccessToken({ sub: userId });
+ 
+  // 5. Create new Refresh Token in DB and get the plain string back
+  // There is error here
+  console.log(userId)
+  const newRefreshTokenPlain = await RefreshToken.createToken(userId);
+  console.log("Refresh Token", newRefreshTokenPlain)
 
-  // Token is valid → rotate it
-  await storedToken.deleteOne(); // remove old one
-
-  // Generate new tokens
-  const newAccessToken = generateAccessToken({ sub: decoded.sub });
-  const newRefreshToken = generateRefreshToken({
-    sub: decoded.sub,
-    jti: uuidv4(),
-  });
-
-  // Store new hashed refresh token
-  await RefreshToken.createToken(decoded.sub); // uses your static method
-
-  res.cookie('refreshToken', newRefreshToken, COOKIE_OPTIONS);
+  // 6. Set cookie and respond
+  res.cookie('refreshToken', newRefreshTokenPlain, COOKIE_OPTIONS);
   return res.json({ accessToken: newAccessToken });
 };
 

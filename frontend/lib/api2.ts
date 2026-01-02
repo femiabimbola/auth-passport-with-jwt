@@ -29,6 +29,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+console.log("ap2 -32", "i am here")
 api.interceptors.response.use(
   (response) => response, // Pass through successful responses
   async (error) => {
@@ -58,6 +59,7 @@ api.interceptors.response.use(
           {},
           { withCredentials: true }
         );
+        console.log("the data", data)
 
         const { accessToken } = data;
         

@@ -60,7 +60,7 @@ api.interceptors.response.use(
 
       try {
         // Call refresh endpoint (sends refreshToken cookie automatically)
-        const response = await api.post('/auth/refresh'); // Adjust path if needed
+        const response = await api.post( `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/refresh`); // Adjust path if needed
 
         const { accessToken: newAccessToken } = response.data;
 
