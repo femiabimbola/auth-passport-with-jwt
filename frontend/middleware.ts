@@ -9,7 +9,6 @@ export function middleware(request: NextRequest) {
   // For now, let's use a dummy check or skip strict middleware and handle per-page.
 
   const pathname = request.nextUrl.pathname;
-  console.log("middleware", request.headers)
 
 //   // Protect anything under /dashboard
 //   if (pathname.startsWith('/dashboard')) {

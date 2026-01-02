@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Mail, User, LayoutDashboard, Settings, LogOut } from "lucide-react";
 
 import useSWR from "swr";
-import api from "@/lib/api";
+import api from "@/lib/api2";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
